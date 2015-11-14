@@ -15,10 +15,10 @@ gulp.task('default', ['clean-coffee', 'make-coffee', 'watch-coffee']);
 
 gulp.task('make-coffee', function() {
     return gulp.src(source)
-        .pipe(newer({
-            dest: dest,
-            ext: '.js'
-        }))
+        // .pipe(newer({
+        //     dest: dest,
+        //     ext: '.js'
+        // }))
         .pipe(coffee({bare: true}).on('error', gutil.log))
         .pipe(gulp.dest(dest));
 });
