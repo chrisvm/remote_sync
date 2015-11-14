@@ -22,9 +22,10 @@ Validation =
         if keys.length <= 0
             return false
 
+        not_found = []
         for field in requiredFields
             if field not in keys
-                return false
-        return true
-
+                not_found.push(field)
+        return not_found
+        
 module.exports = Validation

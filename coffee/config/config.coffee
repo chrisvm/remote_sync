@@ -3,7 +3,7 @@ fs = require('fs')
 YAML = require('yamljs')
 
 Config =
-    read: (dir, config_file='resync') ->
+    read_json_or_yaml: (dir, config_file) ->
         # get the contents of dir
         contents = fs.readdirSync(dir)
 
