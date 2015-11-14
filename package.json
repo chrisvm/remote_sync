@@ -1,0 +1,25 @@
+{
+  "name": "remote_sync",
+  "version": "0.0.1",
+  "description": "Sync remote deployments with ssh proxy support",
+  "main": "resync.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/chrisvm/remote_sync.git"
+  },
+  "keywords": [
+    "ssh",
+    "deployment",
+    "sync",
+    "remote"
+  ],
+  "author": "Christian Velez <christian.velez5@upr.edu>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chrisvm/remote_sync/issues"
+  },
+  "homepage": "https://github.com/chrisvm/remote_sync#readme"
+}
