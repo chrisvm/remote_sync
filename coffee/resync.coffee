@@ -1,0 +1,1 @@
+validate = require './config/validate'
