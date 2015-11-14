@@ -21,3 +21,5 @@ Config =
             return null
 
         return config_content
+
+module.exports = Config
