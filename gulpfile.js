@@ -5,19 +5,26 @@ var gulp = require('gulp'),
     del = require('del'),
     vinylPaths = require('vinyl-paths');
 
+var source = './coffee/**/*.coffee',
+    dest = './build';
 
-gulp.task('coffee', function() {
-    var src_folders = {
-        './coffee': './build/',
-        './coffee/config': './build/config'
-    };
+gulp.task('default', ['clean-coffee', 'make-coffee']);
 
+gulp.task('make-coffee', function() {
+    return gulp.src(source)
+        .pipe(coffee({bare: true}).on('error', gutil.log))
+        .pipe(gulp.dest(output));
+});
+
+gulp.task('clean-coffee', function () {
+    return gulp.src(path.join(dest, '*'))
+        .pipe(del);
+});
+
+gulp.task('watch-coffee', function () {
     var output;
     for (var src in src_folders) {
-        output = src_folders[src];
-        src = path.join(src, '*.coffee');
-        gulp.src(src)
-            .pipe(coffee({bare: true}).on('error', gutil.log))
-            .pipe(gulp.dest(output));
-    }
+        gulp.watch(src, function () {
+
+        });
 });
