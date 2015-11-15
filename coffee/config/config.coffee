@@ -1,6 +1,8 @@
 path = require('path')
 fs = require('fs')
 YAML = require('yamljs')
+validation = require './validation'
+
 
 Config =
     read_json_or_yaml: (dir, config_file) ->
@@ -19,7 +21,12 @@ Config =
             config_content = require(path.join(dir, json_file))
         else
             return null
-
         return config_content
 
+    get_array: (opt) ->
+        if validation.arrayOfStringsOrString(opt)
+            if not validation.arrayOfStrings(opt)
+                return [opt]
+            return opt
+    
 module.exports = Config
