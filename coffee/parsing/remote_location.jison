@@ -4,12 +4,12 @@
 \s+                                 /* skip whitespace */
 "@"                                 return '@';
 ":"                                 return ':';
+([a-zA-Z0-9]+"."[a-zA-Z0-9]+)("."[a-zA-Z0-9]+)*      return 'alpha_dot_string';
+([a-zA-Z0-9]+"."[a-zA-Z0-9]+)("."[a-zA-Z0-9]+)*      return 'number_dot_string';
 [a-zA-Z]+                           return 'string';
 [0-9]+                              return 'digit';
 [0-9a-zA-Z]+                        return 'alpha';
 [0-9a-zA-Z/.]+                      return 'path_string';
-([a-zA-Z0-9]+"."[a-zA-Z0-9]+)("."[a-zA-Z0-9]+)*      return 'alpha_dot_string';
-([a-zA-Z0-9]+"."[a-zA-Z0-9]+)("."[a-zA-Z0-9]+)*      return 'number_dot_string';
 
 
 /lex
@@ -26,6 +26,7 @@ remote_location
                 host: $3,
                 path: $5
             };
+            return $$;
         }
     ;
 

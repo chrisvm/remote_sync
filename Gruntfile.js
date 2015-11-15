@@ -5,12 +5,17 @@ module.exports = function (grunt) {
 			compile: {
 				files: {
 					'build/resync.js': 'coffee/resync.coffee',
-                    'build/config/cli.js': 'coffee/config/cli.js',
+
+					'build/config/cli.js': 'coffee/config/cli.coffee',
                     'build/config/config.js': 'coffee/config/config.coffee',
                     'build/config/validation.js': 'coffee/config/validation.coffee',
-                    'build/parsing/remote_location.js': 'coffee/parsing/remote_location.coffee',
-                    'build/sync/sync_def.js': 'coffee/sync/sync_def.coffee',
-                    'build/sync/sync_run.js': 'coffee/sync/sync_run.coffee'
+
+					'build/parsing/remote_location.js': 'coffee/parsing/remote_location.coffee',
+
+					'build/sync/sync_def.js': 'coffee/sync/sync_def.coffee',
+                    'build/sync/sync_run.js': 'coffee/sync/sync_run.coffee',
+
+					'test/parsing_test.js': 'test/parsing_test.coffee'
 				},
 				options: {
 					bare: true
