@@ -126,6 +126,7 @@ class SyncDef
                                 output = _this.output_dest.dest
                             console.log "...Sending '#{input}' -> '#{output}'"
                             sftp.fastPut input, output, (err) ->
+                                # TODO: fix error when creating new dirs 
                                 throw err;conn.end() if err?
                                 console.log "...Sent '#{output}'"
 
