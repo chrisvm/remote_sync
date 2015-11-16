@@ -36,9 +36,9 @@ Validation =
         return fs.statSync(string_path).isDirectory()
 
     expand_path: (string_path) ->
-        string_path = path.normalize string_path
         if string_path.indexOf('~') > -1
             string_path = expandHomeDir(string_path)
         return string_path
+
 
 module.exports = Validation

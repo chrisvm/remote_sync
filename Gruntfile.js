@@ -14,7 +14,9 @@ module.exports = function (grunt) {
 					'build/sync/sync_def.js': 'coffee/sync/sync_def.coffee',
                     'build/sync/sync_run.js': 'coffee/sync/sync_run.coffee',
 
-					'test/parsing_test.js': 'test/parsing_test.coffee'
+					'test/parsing_test.js': 'test/parsing_test.coffee',
+
+					'build/ssh/ssh_utils.js': 'coffee/ssh/ssh_utils.coffee'
 				},
 				options: {
 					bare: true
