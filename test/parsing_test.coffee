@@ -26,3 +26,8 @@ describe "Parsing", () ->
             parsed.user.user.should.equal('someuser')
             parsed.user.password.should.equal('somepass')
             parsed.path.path.should.equal('/')
+
+        it 'should return null on wrong string', () ->
+            test_loc = 'asdafadsfasf'
+            parsed = parser.parse(test_loc)
+            should.not.exist(parsed)

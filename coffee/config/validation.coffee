@@ -1,4 +1,7 @@
 path = require('path')
+expandHomeDir = require('expand-home-dir')
+fs = require('fs')
+
 
 Validation =
     arrayOfStrings: (mixed) ->
@@ -27,5 +30,15 @@ Validation =
             if field not in keys
                 not_found.push(field)
         return not_found
-        
+
+    path_to_dir: (parsed_path) ->
+        string_path = Validation.expand_path path.format parsed_path
+        return fs.statSync(string_path).isDirectory()
+
+    expand_path: (string_path) ->
+        string_path = path.normalize string_path
+        if string_path.indexOf('~') > -1
+            string_path = expandHomeDir(string_path)
+        return string_path
+
 module.exports = Validation

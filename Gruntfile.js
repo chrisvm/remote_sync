@@ -6,11 +6,10 @@ module.exports = function (grunt) {
 				files: {
 					'build/resync.js': 'coffee/resync.coffee',
 
-					'build/config/cli.js': 'coffee/config/cli.coffee',
-                    'build/config/config.js': 'coffee/config/config.coffee',
+					'build/config/config.js': 'coffee/config/config.coffee',
                     'build/config/validation.js': 'coffee/config/validation.coffee',
 
-					'build/parsing/remote_location.js': 'coffee/parsing/remote_location.coffee',
+					'build/parsing/parsers.js': 'coffee/parsing/parsers.coffee',
 
 					'build/sync/sync_def.js': 'coffee/sync/sync_def.coffee',
                     'build/sync/sync_run.js': 'coffee/sync/sync_run.coffee',

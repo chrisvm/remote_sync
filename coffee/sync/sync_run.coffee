@@ -6,25 +6,33 @@ class SyncRun
         @config = conf
         @verbose = conf.verbose
 
-    run: () ->
-        for sync_def in @config.sync
+    get_def: (def_name) ->
+        options = @config[def_name]
+        if not options?
+            return null
+        options.name = def_name
+        options.cwd = @config.cwd
+        return new SyncDef(options)
+
+
+    run: (cnf_name) ->
+        sync_defs = if cnf_name? then [cnf_name] else @config.sync
+        for sync_def in sync_defs
             if @verbose
                 console.log("Starting sync '#{sync_def}'".yellow)
-                console.log("Looking for def '#{def_name}''".yellow)
+                console.log("...Looking for def '#{sync_def}''".yellow)
 
-            def = @get_def(sync_def)
-            if not def?
-                console.log("Error: sync definition '#{sync_def}' not found")
-                return
-            else if @verbose
-                console.log("Found def '#{sync_def}'".yellow)
-                console.log("Executing '#{sync_def}'".yellow)
-            def.run()
-
-    get_def: (def_name) ->
-        if not def_name of @config
-            return null
-        else
-            return new SyncDef(@config[def_name])
+            try
+                def = @get_def(sync_def)
+                if not def?
+                    err_msg = "Error: sync definition '#{sync_def}' not found in config"
+                    console.log(err_msg.red)
+                    return
+                else if @verbose
+                    console.log("...Found def '#{sync_def}'".yellow)
+                    console.log("...Executing '#{sync_def}'".yellow)
+                def.run()
+            catch error
+                console.log(error.toString().red)
 
 module.exports = SyncRun

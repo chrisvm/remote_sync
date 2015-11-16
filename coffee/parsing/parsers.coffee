@@ -8,12 +8,26 @@ get_parsers = (dir) ->
     jison_file = /^.+\.jison$/
     for file in contents
         if file.match jison_file
-            bnf = fs.readFileSync(path.join(dir, file), 'utf8')
-            file = file.split('.')[0]
-            ret[file] = jison.Parser(bnf)
+            ret[file.split('.')[0]] = create_parser(dir, file)
+    external_parsers(ret)
     return ret
 
-create_parser = (filename) ->
+create_parser = (dir, filename) ->
+    bnf = fs.readFileSync(path.join(dir, filename), 'utf8')
+    parser = jison.Parser(bnf)
+    parser._parse = parser.parse
+    parser.parse = (string) ->
+        try
+            ret = parser._parse(string)
+        catch e
+            ret = null
+        return ret
+    return parser
 
+external_parsers = (parsers) ->
+    parsers.Path = parse: (to_parse) ->
+        ret = path.parse to_parse
+        ret.path = to_parse
+        return ret
 
 module.exports = get_parsers(__dirname)
