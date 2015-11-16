@@ -28,6 +28,19 @@ remote_location
             };
             return $$;
         }
+    | user "@" host
+        {
+            $$ = {
+                type: "remote_locationType",
+                user: $1,
+                host: $3,
+                path: {
+                    type: "PathType",
+                    path: "~"
+                }
+            };
+            return $$;
+        }
     ;
 
 user

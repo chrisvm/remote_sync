@@ -1,28 +1,51 @@
 ssh2 = require 'ssh2'
 fs = require 'fs'
+path = require 'path'
+validation = require '../config/validation'
 
 
 class SSHUtils
     constructor: (options) ->
-        @options = options
+        @dest = options
+        @host = options.host
         @user = options.user
         @path = options.path
-        @normalize_path()
+        @connect_settings =
+            host: @host.host
+            port: 22
+            username: @user.user
+            privateKey: fs.readFileSync validation.expand_path '~/.ssh/id_rsa'
 
-    normalize_path: () ->
-        if @path.path.indexOf('~') > -1
-            conn = new ssh2.Client()
-            conn.on 'ready', () ->
-                conn.exec 'cd;pwd', (err, stream) ->
-                    if err? throw err
-                    stream.on 'close', (code, signal) ->
-                        conn.end()
-                    stream.in 'data', (data) ->
-                        console.log data
-            connect_settings =
-                host: @options.host.host
-                port: 22
-                username: @user.user
-                privateKey: fs.readFileSync('~/.ssh/id_rsa')
-            conn.connect connect_settings
+    process: (def, finish) ->
+        _this = this
+        conn = new ssh2.Client()
+        conn.on 'ready', () ->
+            conn.exec "echo #{_this.path.path}", (err, stream) ->
+                throw err if err?
+                stream.on 'data', (data) ->
+                    abs_path = data.toString().slice(0, -1)
+                    conn.sftp (err, sftp) ->
+                        throw err if err?
+                        sftp.stat abs_path, (err, stats) ->
+                            next = (sts) ->
+                                if not sts.isDirectory()
+                                    if def.input_files.files.length > 1
+                                        err_msg = "Error: more input files than possible in dest"
+                                        console.log(err_msg.red)
+                                        conn.end()
+                                        return
+                                def.output_dest =
+                                    remote: true
+                                    is_dir: sts.isDirectory()
+                                    dest: abs_path
+                                finish(conn, sftp)
+                            if err?
+                                sftp.mkdir abs_path, (err) ->
+                                    throw err if err?
+                                    sftp.stat abs_path, (err, s) ->
+                                        next(s)
+                            else
+                                next(stats)
+        conn.connect @connect_settings
+
 module.exports = SSHUtils

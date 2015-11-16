@@ -2,6 +2,7 @@ parsers = require('../parsing/parsers')
 validation = require('../config/validation')
 recv_readdir = require('recursive-readdir')
 path = require 'path'
+fs = require 'fs'
 SSHUtils = require('../ssh/ssh_utils')
 
 
@@ -59,9 +60,9 @@ class SyncDef
     # resolve input files from remote or
     resolve_input: (callback) ->
         if @src.remote
-            # TODO: implement remote file listing
+            # TODO: implement resolve remote input
             # get remote input files
-            @input_files.src_type = 'remote'
+            @input_files.remote = true
             console.log(@src)
         else
             # get local input files
@@ -75,7 +76,7 @@ class SyncDef
 
             # if single file
             @input_files =
-                src_type: 'local'
+                remote: false
                 is_dir: false
                 src_dir: expanded_path
                 files: []
@@ -102,15 +103,32 @@ class SyncDef
         if @dest.remote
             # resolve remote dest
             ssh_u = new SSHUtils(@dest)
-            
-        callback()
+            ssh_u.process(this, callback)
+        else
+            # TODO: implement resolve local output dest
+
     # run the sync job, sending files concurrently
     run: () ->
         # first resolve input files
         _this = this
         _this.resolve_input () ->
-            _this.resolve_output () ->
-                console.log _this
+            _this.resolve_output (conn, sftp) ->
+                if _this.input_files.remote
+                    # TODO: implement when input files are remote
+                else
+                    count = _this.input_files.files.length
+                    if _this.output_dest.remote
+                        _this.input_files.files.forEach (input_file) ->
+                            input = path.join _this.input_files.src_dir, input_file
+                            if _this.output_dest.is_dir
+                                output = path.join _this.output_dest.dest, input_file
+                            else
+                                output = _this.output_dest.dest
+                            console.log "...Sending '#{input}' -> '#{output}'"
+                            sftp.fastPut input, output, (err) ->
+                                throw err;conn.end() if err?
+                                console.log "...Sent '#{output}'"
 
-
+                    else
+                        # TODO: implement when dest is local
 module.exports = SyncDef
