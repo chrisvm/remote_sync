@@ -9,7 +9,7 @@
 [a-zA-Z]+                           return 'string';
 [0-9]+                              return 'digit';
 [0-9a-zA-Z]+                        return 'alpha';
-[0-9a-zA-Z/~.]+                      return 'path_string';
+[0-9a-zA-Z_\-/~.]+                      return 'path_string';
 
 
 /lex

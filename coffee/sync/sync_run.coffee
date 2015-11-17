@@ -31,6 +31,7 @@ class SyncRun
                 else if @verbose
                     console.log("...Found def '#{sync_def}'".yellow)
                     console.log("...Executing '#{sync_def}'".yellow)
+                def.verbose = @verbose
                 def.run()
             catch error
                 console.log(error.toString().red)

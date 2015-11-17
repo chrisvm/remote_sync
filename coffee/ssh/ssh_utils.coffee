@@ -10,11 +10,15 @@ class SSHUtils
         @host = options.host
         @user = options.user
         @path = options.path
-        @connect_settings =
-            host: @host.host
+        @connect_settings = SSHUtils.settings(@options)
+
+    @settings: (options) ->
+        ret =
+            host: options.host.host
             port: 22
-            username: @user.user
+            username: options.user.user
             privateKey: fs.readFileSync validation.expand_path '~/.ssh/id_rsa'
+        return ret
 
     process: (def, finish) ->
         _this = this
