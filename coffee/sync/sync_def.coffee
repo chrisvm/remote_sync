@@ -86,10 +86,10 @@ class SyncDef
                                 err_msg = "Error: error opening file or dir #{@src.path}"
                                 console.log err_msg.red
                                 process.exit 1
-                                
+
                             if stats.isDirectory()
                                 _this.input_files.is_dir = true
-
+                                sftp.
                             else
                                 _this.input_files.files.push _this.input_files.src_dir
                  if path_string.indexOf('~') > -1
