@@ -20,6 +20,38 @@ class SSHUtils
             privateKey: fs.readFileSync validation.expand_path '~/.ssh/id_rsa'
         return ret
 
+    @transfer_dir: (conn, remotePath, localPath, compression, callback) ->
+        cmd = "tar cf - \"#{remotePath}\" 2>/dev/null"
+        if typeof compression is 'function'
+            callback = compression
+        else if compression is true
+            compression = 6
+
+        if typeof compression is 'number' and compression >= 1 && compression <= 9
+            cmd += ' | gzip -' + compression + 'c 2>/dev/null';
+        else
+            compression = undefined
+
+        conn.exec cmd, (err, stream) ->
+            if err?
+                return callback(err)
+
+            tarStream = tar.extract localPath
+            tarStream.on 'finish', () ->
+                callback exitErr
+
+            stream.on 'exit', (code, signal) ->
+                if typeof code is 'number' and code isnt 0
+                    exitErr = new Error "Remote process exited with code #{code}"
+                else if signal?
+                    exitErr = new Error "Remote process killed with signal #{signal}"
+            .stderr.resume()
+
+            if compression?
+                stream = stream.pipe zlib.createGunzip()
+
+            stream.pipe tarStream
+
     process: (def, finish) ->
         _this = this
         conn = new ssh2.Client()

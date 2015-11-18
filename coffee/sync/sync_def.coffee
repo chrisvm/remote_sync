@@ -5,6 +5,7 @@ path = require 'path'
 fs = require 'fs'
 ssh2 = require 'ssh2'
 SSHUtils = require('../ssh/ssh_utils')
+explode = require '../ssh/explode'
 
 
 class SyncDef
@@ -59,15 +60,9 @@ class SyncDef
             parsed.path = parsed_path
         return parsed
 
-    expand_remote: (path_string, connection_settings, callback) ->
-
-        else
-            callback(path.parse(path_string))
-
     # resolve input files from remote or
     resolve_input: (callback) ->
         if @src.remote
-            # TODO: implement resolve remote input
             _this = this
             settings = SSHUtils.settings(@src)
             conn = new ssh2.Client()
@@ -81,23 +76,33 @@ class SyncDef
 
                     conn.sftp (err, sftp) ->
                         throw err if err?
-                        sftp.stat src.path.path (err, stats) ->
+                        sftp.stat _this.src.path.path, (err, stats) ->
                             if err?
-                                err_msg = "Error: error opening file or dir #{@src.path}"
+                                err_msg = "Error: error opening remote file or dir #{_this.src.path.path}"
                                 console.log err_msg.red
                                 process.exit 1
 
                             if stats.isDirectory()
                                 _this.input_files.is_dir = true
-                                sftp.
+                                # get all files
+                                cmd = "find \"#{_this.src.path.path}\" -type f"
+                                next = (all) ->
+                                    _this.input_files.files = all
+                                    callback()
+
+                                conn.exec cmd, (err, stream) ->
+                                    throw err if err?
+                                    stream.on 'end', () -> conn.end()
+                                    stream.pipe explode '\n', next
                             else
                                 _this.input_files.files.push _this.input_files.src_dir
-                 if path_string.indexOf('~') > -1
+
+                path_string = _this.src.path.path
+                if path_string.indexOf('~') > -1
                     conn.exec "echo #{path_string};", (err, stream) ->
                         throw err if err?
                         stream.on 'data', (data) ->
                             abs_path = data.toString().slice(0, -1)
-                            conn.end()
                             ret = path.parse(abs_path)
                             ret.path = abs_path
                             _this.src.path = ret
@@ -147,6 +152,7 @@ class SyncDef
             ssh_u.process(this, callback)
         else
             # TODO: implement resolve local output dest
+            console.log this.input_files.files
 
     verify_dir: (dir_path, sftp, callback) ->
         if @verbose
