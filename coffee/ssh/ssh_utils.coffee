@@ -52,6 +52,25 @@ class SSHUtils
 
             stream.pipe tarStream
 
+    @check_dir: (conn, sftp, dir_path, verbose, callback) ->
+        sftp.stat dir_path, (err, stats) ->
+            if err?
+                if verbose
+                    msg = "...Dir on remote '#{dir_path}' doesnt exist, creating"
+                    console.log msg.yellow
+                conn.exec "mkdir -p #{dir_path}", (err, stream) ->
+                    if err?
+                        throw err
+                    stream.on 'close', (code, signal) ->
+                        callback()
+            else
+                if not stats.isDirectory()
+                    err_msg = "Error: dir '#{dir_path}' points to an existing file"
+                    console.log err_msg.red
+                    process.exit()
+                else
+                    callback()
+
     process: (def, finish) ->
         _this = this
         conn = new ssh2.Client()
