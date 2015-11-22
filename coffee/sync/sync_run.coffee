@@ -21,7 +21,6 @@ class SyncRun
             if @verbose
                 console.log("Starting sync '#{sync_def}'".yellow)
                 console.log("...Looking for def '#{sync_def}''".yellow)
-
             try
                 def = @get_def(sync_def)
                 if not def?

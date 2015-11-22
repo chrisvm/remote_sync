@@ -1,6 +1,7 @@
 path = require('path')
 expandHomeDir = require('expand-home-dir')
 fs = require('fs')
+mkdirp = require 'mkdirp'
 
 
 Validation =
@@ -40,5 +41,25 @@ Validation =
             string_path = expandHomeDir(string_path)
         return string_path
 
-
+    check_dir: (dir_path, verbose, callback) ->
+        if dir_path is ''
+            return callback()
+        fs.stat dir_path, (err, stats) ->
+            if err?
+                if verbose
+                    msg = "...Dir '#{dir_path}' does not exist, creating"
+                    console.log msg.yellow
+                mkdirp dir_path, (err) ->
+                    if err?
+                        err_msg = "Error: error creating dir '#{dir_path}'"
+                        console.log err_msg.red
+                        process.exit()
+                    callback()
+            else
+                if not stats.isDirectory()
+                    err_msg = "Error: file exists in '#{dir_path}'"
+                    console.log(err_msg.red)
+                    process.exit()
+                else
+                    callback()
 module.exports = Validation

@@ -10,7 +10,7 @@ class SSHUtils
         @host = options.host
         @user = options.user
         @path = options.path
-        @connect_settings = SSHUtils.settings(@options)
+        @connect_settings = SSHUtils.settings(options)
 
     @settings: (options) ->
         ret =
@@ -69,17 +69,17 @@ class SSHUtils
                                         err_msg = "Error: more input files than possible in dest"
                                         console.log(err_msg.red)
                                         conn.end()
-                                        return
+                                        process.exit()
                                 def.output_dest =
                                     remote: true
                                     is_dir: sts.isDirectory()
                                     dest: abs_path
                                 finish(conn, sftp)
                             if err?
-                                sftp.mkdir abs_path, (err) ->
+                                conn.exec "mkdir -p #{abs_path}", (err, stream) ->
                                     throw err if err?
-                                    sftp.stat abs_path, (err, s) ->
-                                        next(s)
+                                    stream.on 'close', (code, signal) ->
+                                        sftp.stat abs_path, (err, s) -> next(s)
                             else
                                 next(stats)
         conn.connect @connect_settings

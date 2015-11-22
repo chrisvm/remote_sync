@@ -4,6 +4,7 @@ recv_readdir = require('recursive-readdir')
 path = require 'path'
 fs = require 'fs'
 ssh2 = require 'ssh2'
+_ = require 'underscore'
 SSHUtils = require('../ssh/ssh_utils')
 explode = require '../ssh/explode'
 
@@ -151,8 +152,15 @@ class SyncDef
             ssh_u = new SSHUtils(@dest)
             ssh_u.process(this, callback)
         else
-            # TODO: implement resolve local output dest
-            console.log this.input_files.files
+            # check if output dir exists
+            _this = this
+            out_path = validation.expand_path(_this.dest.path)
+            validation.check_dir out_path, _this.verbose, () ->
+                _this.output_dest =
+                    remote: false,
+                    is_dir: true,
+                    dest: out_path
+                callback()
 
     verify_dir: (dir_path, sftp, callback) ->
         if @verbose
@@ -175,11 +183,48 @@ class SyncDef
         _this.resolve_input () ->
             _this.resolve_output (conn, sftp) ->
                 count = _this.input_files.files.length
+                # if input files are comming from remote location
                 if _this.input_files.remote
-                    # TODO: implement when input files are remote
+                    inconn = new ssh2.Client()
+                    insettings = SSHUtils.settings(_this.src)
+
+                    # if output is a local destination
+                    if not _this.output_dest.remote
+                        host = _this.src.host.host
+                        msg = "...Getting #{count} files from #{host}"
+                        console.log msg.yellow
+
+                        input_dir = _this.input_files.src_dir
+                        output_dir = _this.output_dest.dest
+                        f = (file) ->
+                            rel = path.relative(input_dir, file)
+                            return [file, path.join(output_dir, rel), rel]
+
+                        inconn.on 'ready', () ->
+                            inconn.sftp (err, sftp) ->
+                                download_file = (inf, outf, sftp) ->
+                                    rel_dir = path.parse(outf).dir
+                                    validation.check_dir rel_dir, _this.verbose, () ->
+                                        sftp.fastGet inf, outf, (err) ->
+                                            if err?
+                                                err_msg = err.toString()
+                                                console.log err_msg.red
+                                            else if _this.verbose
+                                                console.log "...#{inf} -> #{outf}".yellow
+                                            count -= 1
+                                            if count is 0
+                                                inconn.end()
+                                if err?
+                                    throw err
+                                input_files = _.map _this.input_files.files, f
+                                for file in input_files
+                                    [input_file, output_file, relative] = file
+                                    download_file input_file, output_file, sftp
+                        inconn.connect insettings
+                    else
+                        # TODO: implement when input files are remote / output is remote
 
                 else
-
                     if not _this.verbose
                         console.log "...Sending #{count} file(s) in sync '#{_this.name}'"
                     if _this.output_dest.remote
