@@ -15,6 +15,8 @@ class SyncDef
         @name = options.name
         @input_files = null
         @verbose = false
+        @watching = false
+        @w_queue = []
         delete(options.name)
         this.parse()
 

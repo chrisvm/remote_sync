@@ -71,10 +71,10 @@ main = () ->
 
             # set watch callback
             next = () ->
+                console.log "...Starting watching files"
                 watch sync_run
 
             # check for --init flag
-            console.log opts
             if opts.init?
                 sync_run.end () ->
                     next()
