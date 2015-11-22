@@ -116,37 +116,35 @@ class SyncDef
         else
             # get local input files
             # check if single file or dir
-            try
-                single_file = not validation.path_to_dir(@src)
-            catch error
-                err_msg = "Error: Error opening file or dir #{@src.path}"
-                console.log(err_msg.red)
-                return
-
-            # if single file
-            expanded_path = validation.expand_path(@src.path)
-            @input_files =
+            _this = this
+            expanded_path = validation.expand_path(_this.src.path)
+            _this.input_files =
                 remote: false
                 is_dir: false
                 src_dir: expanded_path
                 files: []
-            if single_file
-                # add single file
-                parsed = path.parse(expanded_path)
-                @input_files.src_dir = parsed.dir
-                @input_files.files.push(parsed.base)
-                callback()
-            else
-                # get all files in input dir
-                _this = this
-                _this.input_files.is_dir = true
-                _this.input_files.src_dir = expanded_path
-                recv_readdir expanded_path, [@ignore_func], (err, files) ->
-                    if err?
-                        throw err
-                    for file in files
-                        _this.input_files.files.push path.relative expanded_path, file
-                    callback()
+            fs.stat expanded_path, (err, stats) ->
+                if err?
+                    err_msg = "Error: Error opening file or dir #{expanded_path}"
+                    console.log err_msg.red
+                    process.exit()
+                else
+                    if stats.isDirectory()
+                        # get all files in input dir
+                        _this.input_files.is_dir = true
+                        _this.input_files.src_dir = expanded_path
+                        recv_readdir expanded_path, [_this.ignore_func], (err, files) ->
+                            if err?
+                                throw err
+                            for file in files
+                                _this.input_files.files.push path.relative expanded_path, file
+                            callback()
+                    else
+                        # add single file
+                        parsed = path.parse(expanded_path)
+                        _this.input_files.src_dir = parsed.dir
+                        _this.input_files.files.push(parsed.base)
+                        callback()
 
     resolve_output: (callback) ->
         if @dest.remote
@@ -210,7 +208,6 @@ class SyncDef
                                     download_file input_file, output_file
                         inconn.connect insettings
                     else
-                        # TODO: implement when input files are remote / output is remote
                         # process the input files
                         input_dir = _this.input_files.src_dir
                         output_dir = _this.output_dest.dest
@@ -275,6 +272,26 @@ class SyncDef
                                         if count is 0
                                             outconn.end()
                     else
-                        # TODO: implement when dest is local
+                        console.log "...Copying #{count} files"
+                        # filter input files
+                        input_dir = _this.input_files.src_dir
+                        output_dir = _this.output_dest.dest
+                        f = (file) ->
+                            return [path.join(input_dir, file), path.join(output_dir, file), file]
+                        input_files = _.map _this.input_files.files, f
 
+                        # copy file abstraction
+                        copy_files = (input_file, output_file, verbose) ->
+                            validation.check_dir path.parse(output_file).dir, verbose, () ->
+                                instream = fs.createReadStream input_file
+                                outstream = fs.createWriteStream output_file
+                                outstream.on 'finish', () ->
+                                    count -= 1
+                                    if verbose
+                                        console.log "...#{input_file} -> #{output_file}".yellow
+                                instream.pipe outstream
+
+                        for file in input_files
+                            [input_file, output_file, relative] = file
+                            copy_files input_file, output_file, _this.verbose
 module.exports = SyncDef
