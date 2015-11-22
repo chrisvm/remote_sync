@@ -28,5 +28,21 @@ Config =
             if not validation.arrayOfStrings(opt)
                 return [opt]
             return opt
-    
+
+    get_config: (opts) ->
+        # get config
+        if opts.parent.dir?
+            cwd = path.resolve(opts.parent.dir)
+        else
+            cwd = process.cwd()
+
+        cnf = Config.read_json_or_yaml(cwd, 'resync')
+        cnf?.verbose = opts.parent.verbose
+        cnf?.cwd = cwd
+        if not cnf?
+            err_msg = "Error: Config file not found in '#{cwd}'"
+            console.log(err_msg.red)
+            process.exit()
+        return cnf
+        
 module.exports = Config

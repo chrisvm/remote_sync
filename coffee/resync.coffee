@@ -4,6 +4,7 @@ program = require 'commander'
 path = require 'path'
 colors = require 'colors'
 SyncRun = require './sync/sync_run'
+watch = require './watch/watch'
 
 
 main = () ->
@@ -19,22 +20,13 @@ main = () ->
         .description('sync all configs, or a single config [config_name]')
         .action (cnf_name, opts) ->
             # get config
-            if opts.parent.dir?
-                cwd = path.resolve(opts.parent.dir)
-            else
-                cwd = process.cwd()
-
-            cnf = config.read_json_or_yaml(cwd, 'resync')
-            cnf?.verbose = opts.parent.verbose
-            cnf?.cwd = cwd
-            if not cnf?
-                err_msg = "Error: Config file not found in '#{cwd}'"
-                console.log(err_msg.red)
-                return
+            cnf = config.get_config(opts)
 
             # if given def_name, dont look for sync field in config
             if cnf_name?
                 sync_run = new SyncRun(cnf)
+                sync_run.end () ->
+                    console.log "...Finished '#{cnf_name}'".yellow
                 sync_run.run(cnf_name)
                 return
 
@@ -55,7 +47,40 @@ main = () ->
 
             # for all sync config, run them sequentually
             sync_run = new SyncRun(cnf)
+            _this = this
+            sync_run.end () ->
+                if _this.verbose
+                    console.log "...'#{sync_run}' finished".yellow
             sync_run.run()
+
+    program
+        .command('watch')
+        .description('watch for changes in first def of sync, then sync file')
+        .option('-i, --init', 'do a sync command before watching')
+        .action (opts) ->
+            # get config
+            cnf = config.get_config(opts)
+
+            # check for correct sync opt
+            cnf.sync = config.get_array(cnf.sync)
+            if not cnf.sync?
+                err_msg = "Error: sync parameters not a string or array of strings"
+                return
+            # get sync run in config
+            sync_run = new SyncRun cnf
+
+            # set watch callback
+            next = () ->
+                watch sync_run
+
+            # check for --init flag
+            console.log opts
+            if opts.init?
+                sync_run.end () ->
+                    next()
+                sync_run.run()
+            else
+                next()
 
     program.parse(process.argv)
     if program.args.length is 0

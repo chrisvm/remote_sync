@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/chrisvm/remote_sync#readme",
   "dependencies": {
+    "chokidar": "git+https://github.com/paulmillr/chokidar.git",
     "coffee-script": "^1.10.0",
     "colors": "^1.1.2",
     "commander": "^2.9.0",

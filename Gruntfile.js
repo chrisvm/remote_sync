@@ -17,7 +17,9 @@ module.exports = function (grunt) {
 					'test/parsing_test.js': 'test/parsing_test.coffee',
 
 					'build/ssh/ssh_utils.js': 'coffee/ssh/ssh_utils.coffee',
-					'build/ssh/explode.js': 'coffee/ssh/explode.coffee'
+					'build/ssh/explode.js': 'coffee/ssh/explode.coffee',
+
+					'build/watch/watch.js': 'coffee/watch/watch.coffee'
 				},
 				options: {
 					bare: true

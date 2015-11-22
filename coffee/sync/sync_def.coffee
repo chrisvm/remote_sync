@@ -163,7 +163,7 @@ class SyncDef
                 callback()
 
     # run the sync job, sending files concurrently
-    run: () ->
+    run: (end) ->
         # first resolve input files
         _this = this
         _this.resolve_input () ->
@@ -200,6 +200,7 @@ class SyncDef
                                             count -= 1
                                             if count is 0
                                                 inconn.end()
+                                                end()
                                 if err?
                                     throw err
                                 input_files = _.map _this.input_files.files, f
@@ -241,6 +242,7 @@ class SyncDef
                                                 f = () ->
                                                     inconn.end()
                                                     outconn.end()
+                                                    end()
                                                 setTimeout f, 500
                                         instream.pipe outstream
 
@@ -271,6 +273,7 @@ class SyncDef
                                         count -= 1
                                         if count is 0
                                             outconn.end()
+                                            end()
                     else
                         console.log "...Copying #{count} files"
                         # filter input files
@@ -289,6 +292,8 @@ class SyncDef
                                     count -= 1
                                     if verbose
                                         console.log "...#{input_file} -> #{output_file}".yellow
+                                    if count is 0
+                                        end()
                                 instream.pipe outstream
 
                         for file in input_files
